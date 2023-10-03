@@ -48,6 +48,36 @@ describe('main', () => {
     expect(mockConsoleError).toHaveBeenCalledWith(`An error occurred in main: ${errorMsg}`);
     expect(mockConsoleLog).not.toHaveBeenCalled();
   });
+
+  it('fetches and displays the list when --list flag is used', async () => {
+    const mockLanguages = 'Java,Python,Ruby';
+    (axios.get as jest.Mock).mockResolvedValue({ data: mockLanguages });
+
+    await main(['--list'], { list: true });
+
+    expect(mockConsoleLog.mock.calls).toEqual(expect.arrayContaining([
+      ['Available languages and frameworks:'],
+      ['Java'],
+      ['Python'],
+      ['Ruby']
+    ]));
+    expect(mockConsoleError).not.toHaveBeenCalled();
+  });
+
+  it('fetches and displays the list when "list" is a positional argument', async () => {
+    const mockLanguages = 'Java,Python,Ruby';
+    (axios.get as jest.Mock).mockResolvedValue({ data: mockLanguages });
+
+    await main(['list'], {});
+
+    expect(mockConsoleLog.mock.calls).toEqual(expect.arrayContaining([
+      ['Available languages and frameworks:'],
+      ['Java'],
+      ['Python'],
+      ['Ruby']
+    ]));
+    expect(mockConsoleError).not.toHaveBeenCalled();
+  });
 });
 
 describe('getLanguagesFromOptionsOrArgs', () => {
