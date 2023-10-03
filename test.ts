@@ -1,6 +1,6 @@
 import axios from 'axios';
 import fs from 'fs/promises';
-import { main, fetchGitignore, writeGitignoreFile, getLanguagesFromOptionsOrArgs } from './index';
+import { main, fetchGitignore, writeGitignoreFile, getLanguagesFromOptionsOrArgs, handleError } from './index';
 jest.mock('axios');
 jest.mock('fs/promises');
 
@@ -20,10 +20,33 @@ describe('writeGitignoreFile', () => {
 });
 
 describe('main', () => {
-  it('executes main logic', async () => {
+  let mockConsoleLog: jest.SpyInstance;
+  let mockConsoleError: jest.SpyInstance;
+
+  beforeEach(() => {
+    mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => { });
+    mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => { });
+  });
+
+  afterEach(() => {
+    mockConsoleLog.mockRestore();
+    mockConsoleError.mockRestore();
+  });
+
+  it('executes main logic successfully', async () => {
     (axios.get as jest.Mock).mockResolvedValue({ data: 'some gitignore content' });
     await main();
     expect(fs.writeFile).toHaveBeenCalledWith('.gitignore', 'some gitignore content');
+    expect(mockConsoleLog).toHaveBeenCalledWith('Generated .gitignore file');
+    expect(mockConsoleError).not.toHaveBeenCalled();
+  });
+
+  it('handles errors correctly', async () => {
+    const errorMsg = 'Something went wrong';
+    (axios.get as jest.Mock).mockRejectedValue(new Error(errorMsg));
+    await main();
+    expect(mockConsoleError).toHaveBeenCalledWith(`An error occurred in main: ${errorMsg}`);
+    expect(mockConsoleLog).not.toHaveBeenCalled();
   });
 });
 
@@ -58,5 +81,53 @@ describe('getLanguagesFromOptionsOrArgs', () => {
     const optsLanguages = undefined;
     const result = getLanguagesFromOptionsOrArgs(argv, args, optsLanguages);
     expect(result).toBe('');
+  });
+});
+
+describe('handleError', () => {
+  let mockConsoleError: jest.SpyInstance;
+
+  beforeEach(() => {
+    mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => { });
+  });
+
+  afterEach(() => {
+    mockConsoleError.mockRestore();
+    jest.resetAllMocks();
+  });
+
+  it('handles Axios errors', () => {
+    const axiosError = {
+      isAxiosError: true,
+      message: 'Network Error',
+      response: {
+        status: 404,
+        data: 'Not Found'
+      }
+    };
+
+    (axios.isAxiosError as unknown as jest.Mock).mockReturnValue(true);
+
+    handleError(axiosError, 'fetchGitignore');
+
+    expect(mockConsoleError).toHaveBeenCalledWith('Network error occurred in fetchGitignore: Network Error');
+    expect(mockConsoleError).toHaveBeenCalledWith('Status Code: 404');
+    expect(mockConsoleError).toHaveBeenCalledWith('Data: "Not Found"');
+  });
+
+  it('handles generic Error objects', () => {
+    const genericError = new Error('Something went wrong');
+
+    handleError(genericError, 'main');
+
+    expect(mockConsoleError).toHaveBeenCalledWith('An error occurred in main: Something went wrong');
+  });
+
+  it('handles unknown errors', () => {
+    const unknownError = 'An unknown error';
+
+    handleError(unknownError, 'main');
+
+    expect(mockConsoleError).toHaveBeenCalledWith('An unknown error occurred in main');
   });
 });

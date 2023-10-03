@@ -16,7 +16,7 @@ async function main(): Promise<void> {
     await writeGitignoreFile(gitignoreContent);
     console.log('Generated .gitignore file');
   } catch (error) {
-    handleError(error);
+    handleError(error, "main");
   }
 }
 
@@ -34,8 +34,18 @@ async function writeGitignoreFile(content: string): Promise<void> {
   await fs.writeFile('.gitignore', content);
 }
 
-function handleError(error: any): void {
-  console.error(`An error occurred: ${error.message}`);
+function handleError(error: any, context: string): void {
+  if (axios.isAxiosError(error)) {
+    console.error(`Network error occurred in ${context}: ${error.message}`);
+    if (error.response) {
+      console.error(`Status Code: ${error.response.status}`);
+      console.error(`Data: ${JSON.stringify(error.response.data)}`);
+    }
+  } else if (error instanceof Error) {
+    console.error(`An error occurred in ${context}: ${error.message}`);
+  } else {
+    console.error(`An unknown error occurred in ${context}`);
+  }
 }
 
 export {
@@ -43,4 +53,5 @@ export {
   fetchGitignore,
   writeGitignoreFile,
   getLanguagesFromOptionsOrArgs,
+  handleError,
 };
