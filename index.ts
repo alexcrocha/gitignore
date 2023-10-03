@@ -11,7 +11,7 @@ program
 
 async function main(): Promise<void> {
   try {
-    const languages = getLanguagesFromOptionsOrArgs();
+    const languages = getLanguagesFromOptionsOrArgs(process.argv, program.args, program.opts().languages);
     const gitignoreContent = await fetchGitignore(languages);
     await writeGitignoreFile(gitignoreContent);
     console.log('Generated .gitignore file');
@@ -20,10 +20,9 @@ async function main(): Promise<void> {
   }
 }
 
-function getLanguagesFromOptionsOrArgs(): string {
-  const isLanguagesFlagProvided = process.argv.includes('-l') || process.argv.includes('--languages');
-  const options = program.opts();
-  return isLanguagesFlagProvided ? options.languages.join(',') : program.args.join(',');
+function getLanguagesFromOptionsOrArgs(argv: string[], args: string[], optsLanguages: string[] | undefined): string {
+  const isLanguagesFlagProvided = argv.includes('-l') || argv.includes('--languages');
+  return isLanguagesFlagProvided ? optsLanguages?.join(',') || '' : args.join(',');
 }
 
 async function fetchGitignore(languages: string): Promise<string> {
@@ -38,3 +37,10 @@ async function writeGitignoreFile(content: string): Promise<void> {
 function handleError(error: any): void {
   console.error(`An error occurred: ${error.message}`);
 }
+
+export {
+  main,
+  fetchGitignore,
+  writeGitignoreFile,
+  getLanguagesFromOptionsOrArgs,
+};
