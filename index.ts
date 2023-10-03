@@ -7,7 +7,7 @@ import { promisify } from 'util';
 import { program } from 'commander';
 
 program
-  .option('-l, --languages <type>', 'comma separated languages or frameworks')
+  .option('-l, --languages <type...>', 'comma separated languages or frameworks')
   .action(async (args) => {
     if (args && args.length > 0) {
       const languages = args.join(',');
