@@ -1,6 +1,6 @@
 import axios from 'axios';
 import fs from 'fs/promises';
-import { main, fetchGitignore, writeGitignoreFile, getLanguagesFromOptionsOrArgs, handleError } from './index';
+import { main, fetchGitignore, writeGitignoreFile, getLanguagesFromOptionsOrArgs, handleError } from './cli';
 jest.mock('axios');
 jest.mock('fs/promises');
 
