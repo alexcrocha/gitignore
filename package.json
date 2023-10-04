@@ -1,6 +1,6 @@
 {
   "name": "@alexcrocha/gitignore",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A command-line tool to dynamically generate .gitignore files based on specified parameters.",
   "main": "dist/cli.js",
   "scripts": {
@@ -11,6 +11,14 @@
   },
   "author": "",
   "license": "ISC",
+  "keywords": [
+    "gitignore",
+    "generator",
+    "command-line",
+    "CLI",
+    "code",
+    "ignore"
+  ],
   "devDependencies": {
     "@types/jest": "^29.5.5",
     "@types/node": "^20.8.2",
